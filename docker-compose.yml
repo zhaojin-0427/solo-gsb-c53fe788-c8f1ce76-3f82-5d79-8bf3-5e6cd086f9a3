@@ -1,0 +1,17 @@
+services:
+  fair-draw-room:
+    build: .
+    image: fair-draw-room:latest
+    container_name: fair-draw-room
+    ports:
+      - "8000:8000"
+    volumes:
+      - draw-data:/data
+    environment:
+      # 超时清扫间隔（秒）
+      DRAW_SWEEP_INTERVAL: "1"
+      DRAW_DB_PATH: "/data/draw.db"
+    restart: unless-stopped
+
+volumes:
+  draw-data:

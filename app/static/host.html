@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>主持台 · 多人公平抽签室</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="row" style="justify-content:space-between">
+    <h1>🧑‍⚖️ 主持台</h1>
+    <div class="row">
+      <span id="ws-status" class="muted small"></span>
+      <a href="/" class="btn ghost small">返回首页</a>
+    </div>
+  </div>
+
+  <div class="banner error" id="fatal" hidden></div>
+
+  <div id="room" hidden>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <h2 id="r-title" style="margin:0"></h2>
+          <div class="muted small">轮次 ID <span class="mono" id="r-id"></span></div>
+        </div>
+        <span id="r-status" class="pill"></span>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="muted small">承诺截止：<span id="r-commit-dl"></span><br>
+          <span id="r-commit-cd"></span></div>
+        <div class="muted small">揭示截止：<span id="r-reveal-dl"></span><br>
+          <span id="r-reveal-cd"></span></div>
+      </div>
+      <div id="void-box" class="banner error" hidden style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">奖项 <span class="muted small" id="prize-list"></span></h2>
+      <div id="results-box"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">成员进度与一次性邀请码</h2>
+      <p class="muted small">邀请链接形如 <span class="mono">/#join=邀请码</span>，在任意设备打开即可。邀请码仅首次使用有效；成员加入后的会话令牌保存在其浏览器中。</p>
+      <table>
+        <thead><tr><th>#</th><th>成员</th><th>承诺</th><th>揭示</th><th>邀请码 / 链接</th></tr></thead>
+        <tbody id="member-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2 style="margin-top:0">审计导出</h2>
+        <p class="muted small">导出包含配置、全部承诺、揭示的秘密、事件序列与结果的 JSON，可在浏览器中完全独立复算（无需服务端）。</p>
+        <div class="row">
+          <button id="btn-audit" class="small">下载审计 JSON</button>
+          <button id="btn-audit-view" class="ghost small">在浏览器中查看</button>
+          <a id="btn-verify" class="btn ghost small" href="/verify.html" target="_blank">前往复算页</a>
+        </div>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">主持人链接（凭证）</h2>
+        <p class="muted small">请自行保存。丢失后无法恢复管理权限；任何人获得它都能查看与导出本轮数据。</p>
+        <div class="copyable">
+          <code id="host-url"></code>
+          <button id="btn-copy-host" class="ghost small">复制</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">事件序列</h2>
+      <div class="event-list" id="event-list"></div>
+    </div>
+  </div>
+</div>
+<script src="/static/js/common.js"></script>
+<script src="/static/js/host.js"></script>
+</body>
+</html>

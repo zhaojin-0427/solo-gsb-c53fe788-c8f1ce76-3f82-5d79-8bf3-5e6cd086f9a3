@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>独立审计复算 · 多人公平抽签室</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>🔍 独立审计复算</h1>
+  <p class="sub">完全在本浏览器中离线复算：校验承诺 → 重建种子 → 复现拒绝采样洗牌 → 比对中奖结果。本页不发起任何网络请求。</p>
+
+  <div class="card">
+    <h2 style="margin-top:0">载入审计 JSON</h2>
+    <div class="row">
+      <input type="file" id="f-file" accept=".json,application/json" style="width:auto">
+      <span class="muted small">或直接粘贴：</span>
+    </div>
+    <label for="f-paste">审计 JSON</label>
+    <textarea id="f-paste" rows="8" placeholder='{"format":"fair-draw-room/audit/v1", ...}'></textarea>
+    <div class="row" style="margin-top:12px">
+      <button id="btn-verify" class="green">开始复算</button>
+      <button id="btn-demo" class="ghost">载入内置示例（合成数据）</button>
+    </div>
+    <div class="banner error" id="load-err" hidden></div>
+  </div>
+
+  <div id="report" hidden>
+    <div class="card">
+      <h2 style="margin-top:0">复算结论</h2>
+      <div id="verdict"></div>
+      <div id="checks" style="margin-top:12px"></div>
+    </div>
+    <div class="card" id="detail-card" hidden>
+      <h2 style="margin-top:0">复算详情</h2>
+      <div id="detail"></div>
+    </div>
+  </div>
+
+  <div class="card quiet">
+    <h3>复算规则</h3>
+    <ol class="muted small" style="margin:6px 0 0 18px;padding:0">
+      <li><strong>编码</strong>：帧 = <span class="mono">0x55 'U' + uint32_be(长度) + UTF-8 载荷</span>；
+        列表先逐元素成帧、拼接后再整体成帧（嵌套长度前缀，无分隔符歧义）。</li>
+      <li><strong>承诺</strong>：<span class="mono">SHA-256(nested(["fair-draw-commitment-v1",
+        nested([轮次ID, 位次, 姓名, 秘密])]))</span>，须与库中承诺逐字符一致。</li>
+      <li><strong>种子</strong>：<span class="mono">SHA-256(nested(["fair-draw-seed-v1",
+        nested([轮次ID, 标题, 成员列表, 奖项列表, 承诺截止, 揭示截止, 秘密列表])]))</span>。</li>
+      <li><strong>抽样</strong>：对 counter=0,1,2… 求 <span class="mono">HMAC-SHA256(种子, uint64_be(counter))</span>，
+        解释为 256 位整数；不小于 <span class="mono">2^256 − 2^256 mod (i+1)</span> 则拒绝（消除模偏差）。</li>
+      <li><strong>洗牌</strong>：Fisher-Yates，i 从 n−1 到 1，j 为 [0,i] 上的均匀抽样；奖项依次取排列前 |P| 位。</li>
+    </ol>
+  </div>
+</div>
+<script src="/static/js/crypto.js"></script>
+<script src="/static/js/verify.js"></script>
+</body>
+</html>

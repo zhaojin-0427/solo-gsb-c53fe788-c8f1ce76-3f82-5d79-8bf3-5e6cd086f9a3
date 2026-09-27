@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>成员 · 多人公平抽签室</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="row" style="justify-content:space-between">
+    <h1>🙋 我的抽签席位</h1>
+    <div class="row">
+      <span id="ws-status" class="muted small"></span>
+      <a href="/" class="btn ghost small">返回首页</a>
+    </div>
+  </div>
+
+  <div class="banner error" id="fatal" hidden></div>
+
+  <div id="room" hidden>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <h2 id="r-title" style="margin:0"></h2>
+          <div class="muted small">你是 <strong id="me-label"></strong>
+            （固定位次 #<span id="me-index"></span>） · <span class="mono" id="r-id"></span></div>
+        </div>
+        <span id="r-status" class="pill"></span>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="muted small">承诺截止：<span id="r-commit-dl"></span><br><span id="r-commit-cd"></span></div>
+        <div class="muted small">揭示截止：<span id="r-reveal-dl"></span><br><span id="r-reveal-cd"></span></div>
+      </div>
+      <div id="void-box" class="banner error" hidden style="margin-top:14px"></div>
+    </div>
+
+    <!-- 步骤 1：本地秘密 -->
+    <div class="card" id="step-secret">
+      <h2 style="margin-top:0">① 在本机生成秘密</h2>
+      <p class="muted small">秘密由浏览器 <span class="mono">crypto.getRandomValues</span> 生成，仅保存在本浏览器
+        （localStorage），承诺阶段不会发给服务端。请妥善备份：若揭示阶段无法提供同一秘密，该轮将作废。</p>
+      <div class="secret-box">
+        <label>我的秘密（建议立即复制备份）</label>
+        <div class="copyable">
+          <code id="secret-value"></code>
+          <button id="btn-regen" class="ghost small">重新随机</button>
+          <button id="btn-copy-secret" class="ghost small">复制</button>
+        </div>
+      </div>
+      <label>或粘贴你自己的秘密（可选，留空则使用上面的随机值）</label>
+      <input type="text" id="secret-custom" placeholder="自定义秘密（可空）" maxlength="512">
+      <div class="banner warn" id="secret-warn" hidden>
+        更换/自定义秘密后，务必使用与已提交承诺一致的那个秘密来揭示。
+      </div>
+    </div>
+
+    <!-- 步骤 2：承诺 -->
+    <div class="card" id="step-commit">
+      <h2 style="margin-top:0">② 计算并提交承诺</h2>
+      <p class="muted small">承诺 = SHA-256(嵌套长度前缀编码(域标签‖轮次ID‖固定位次‖姓名‖秘密))。提交后不可更改。</p>
+      <label>本机计算得到的承诺</label>
+      <div class="copyable">
+        <code id="commitment-value" class="muted">（输入秘密后自动计算）</code>
+      </div>
+      <div class="banner error" id="commit-err" hidden></div>
+      <div class="row" style="margin-top:12px">
+        <button id="btn-commit">提交承诺</button>
+        <span id="commit-done" class="tag-ok" hidden>✓ 承诺已提交，等待其他成员…</span>
+      </div>
+    </div>
+
+    <!-- 步骤 3：揭示 -->
+    <div class="card" id="step-reveal" hidden>
+      <h2 style="margin-top:0">③ 揭示秘密</h2>
+      <p class="muted small">全员承诺已到齐。服务端会用与上面完全相同的编码核对承诺；不符或提交不同秘密都会导致整轮作废。</p>
+      <label>即将揭示的秘密</label>
+      <div class="copyable"><code id="reveal-secret"></code></div>
+      <div class="banner error" id="reveal-err" hidden></div>
+      <div class="banner warn" id="reveal-mismatch-warn" hidden>
+        本机自检发现：当前秘密计算出的承诺与你已提交的承诺不一致！提交后整轮会作废。请换回正确的秘密。
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="btn-reveal" class="green">提交揭示</button>
+        <span id="reveal-done" class="tag-ok" hidden>✓ 已揭示，等待其他成员…</span>
+      </div>
+    </div>
+
+    <!-- 结果 -->
+    <div class="card" id="step-result" hidden>
+      <h2 style="margin-top:0">🏆 抽签结果</h2>
+      <div id="result-box"></div>
+      <p class="muted small">种子 = SHA-256(域标签‖配置‖按固定顺序排列的全员秘密)，
+        配合 HMAC-SHA256 拒绝采样的 Fisher-Yates。可到首页的“独立审计复算”页验证。</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">全员进度</h2>
+      <table>
+        <thead><tr><th>#</th><th>成员</th><th>承诺</th><th>揭示</th></tr></thead>
+        <tbody id="member-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">事件序列</h2>
+      <div class="event-list" id="event-list"></div>
+    </div>
+  </div>
+</div>
+<script src="/static/js/common.js"></script>
+<script src="/static/js/crypto.js"></script>
+<script src="/static/js/member.js"></script>
+</body>
+</html>

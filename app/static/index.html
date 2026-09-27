@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>多人公平抽签室</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>🎲 多人公平抽签室</h1>
+  <p class="sub">承诺-揭示（commit-reveal）+ 全员秘密派生种子的公平抽签。轮次不可变、超时作废、全程可审计复算。</p>
+
+  <div class="tabs">
+    <a href="#" id="tab-create" class="active">主持人 · 创建轮次</a>
+    <a href="#" id="tab-join">成员 · 凭邀请码加入</a>
+    <a href="/verify.html">独立审计复算</a>
+  </div>
+
+  <!-- 创建轮次 -->
+  <div class="card" id="create-panel">
+    <h2 style="margin-top:0">创建不可变轮次</h2>
+    <p class="muted">创建后成员顺序、奖项与两个截止时间均不可更改。请把生成的一次性邀请码分别发给对应成员。</p>
+
+    <label for="f-title">轮次标题</label>
+    <input type="text" id="f-title" placeholder="例如：2026 年会抽奖" maxlength="80">
+
+    <div class="grid2">
+      <div>
+        <label for="f-members">成员名单（每行一个，顺序固定）</label>
+        <textarea id="f-members" rows="6" placeholder="张三&#10;李四&#10;王五"></textarea>
+      </div>
+      <div>
+        <label for="f-prizes">奖项（每行一个，按颁发顺序）</label>
+        <textarea id="f-prizes" rows="6" placeholder="一等奖&#10;二等奖"></textarea>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <label for="f-commit-deadline">承诺截止时间（浏览器本地时间）</label>
+        <input type="datetime-local" id="f-commit-deadline">
+      </div>
+      <div>
+        <label for="f-reveal-deadline">揭示截止时间（浏览器本地时间）</label>
+        <input type="datetime-local" id="f-reveal-deadline">
+      </div>
+    </div>
+
+    <div class="banner error" id="create-err" hidden></div>
+    <div class="row" style="margin-top:16px">
+      <button id="btn-create" class="green">创建轮次并生成邀请码</button>
+      <span class="muted">提示：创建后请保存主持人链接，它是管理与导出审计的唯一凭证。</span>
+    </div>
+  </div>
+
+  <!-- 加入 -->
+  <div class="card" id="join-panel" hidden>
+    <h2 style="margin-top:0">凭一次性邀请码加入</h2>
+    <p class="muted">邀请码只能使用一次：首次加入会换发本设备的会话令牌。请始终在同一设备/浏览器完成承诺与揭示。</p>
+    <label for="f-code">邀请码</label>
+    <input type="text" id="f-code" placeholder="例如 K7M2P9QXA4JD" style="font-family:var(--mono);text-transform:uppercase;letter-spacing:2px" maxlength="12">
+    <div class="banner error" id="join-err" hidden></div>
+    <div class="row" style="margin-top:16px">
+      <button id="btn-join">加入轮次</button>
+    </div>
+  </div>
+
+  <div class="card quiet">
+    <h3>它如何保证公平？</h3>
+    <ol class="muted small" style="margin:6px 0 0 18px;padding:0">
+      <li>成员各自在浏览器本地生成随机秘密，只公开 <span class="mono">SHA-256(嵌套长度前缀编码(轮次‖位次‖姓名‖秘密))</span> 承诺。</li>
+      <li>全员承诺到齐后才进入揭示阶段；提前揭示、超时、承诺与秘密不符 → 整轮作废。</li>
+      <li>服务端对“配置（含固定成员顺序、奖项、截止时间）+ 按顺序排列的全部秘密”求 SHA-256 种子，任一字节被篡改都会改变结果。</li>
+      <li>用 HMAC-SHA256 + 拒绝采样在 [0,i] 上做无模偏差的 Fisher-Yates；拒绝轨迹随结果一起导出。</li>
+      <li>阶段切换/结算均在带版本号的数据库事务内原子完成；导出的审计 JSON 可在“独立审计复算”页离线复算。</li>
+    </ol>
+  </div>
+</div>
+<script src="/static/js/common.js"></script>
+<script src="/static/js/index.js"></script>
+</body>
+</html>
